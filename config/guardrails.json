@@ -1,0 +1,8 @@
+{
+  "max_change_pct": 0.03,
+  "min_margin": 1.0,
+  "min_price": 20.0,
+  "max_price": 1000.0,
+  "max_vs_comp_pct": 0.10
+}
+

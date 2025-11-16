@@ -1,0 +1,51 @@
+# ============================================================================
+# Fuel Price Optimizer - Development Dependencies
+# ============================================================================
+# Install with: pip install -r requirements-dev.txt
+# This includes all base requirements plus additional dev tools
+# ============================================================================
+
+# Include base requirements
+-r requirements.txt
+
+# ----------------------------------------------------------------------------
+# Additional Development Tools
+# ----------------------------------------------------------------------------
+
+# Enhanced testing
+pytest-xdist>=3.0.0,<4.0.0  # Parallel test execution
+pytest-timeout>=2.1.0,<3.0.0  # Test timeout
+pytest-mock>=3.10.0,<4.0.0  # Mocking support
+coverage>=7.0.0,<8.0.0  # Coverage reporting
+
+# Code quality
+pylint>=2.17.0,<3.0.0  # Additional linting
+autopep8>=2.0.0,<3.0.0  # Auto-format code
+
+# Documentation
+sphinx>=7.0.0,<8.0.0  # Documentation generation
+sphinx-rtd-theme>=1.3.0,<2.0.0  # ReadTheDocs theme
+
+# Pre-commit hooks
+pre-commit>=3.0.0,<4.0.0  # Git hooks for code quality
+
+# Jupyter (for notebooks)
+jupyter>=1.0.0,<2.0.0
+ipython>=8.0.0,<9.0.0
+notebook>=7.0.0,<8.0.0
+
+# ----------------------------------------------------------------------------
+# Optional Development Dependencies
+# ----------------------------------------------------------------------------
+
+# Type checking (enhanced)
+types-python-dateutil>=2.8.0,<3.0.0
+types-requests>=2.28.0,<3.0.0
+
+# Performance profiling
+memory-profiler>=0.61.0,<1.0.0
+line-profiler>=4.0.0,<5.0.0
+
+# Dependency management
+pip-tools>=7.0.0,<8.0.0  # Compile requirements from requirements.in
+

@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  fuel-price-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fuel-price-optimizer
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount outputs directory for persistence
+      - ./outputs:/app/outputs
+      # Optional: Mount data directory if you want to update data without rebuilding
+      # - ./data:/app/data:ro
+      # Optional: Mount models directory if you want to update model without rebuilding
+      # - ./models:/app/models:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+

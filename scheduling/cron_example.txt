@@ -1,0 +1,31 @@
+# Cron Configuration for Daily Price Recommendations
+# 
+# Install cron job:
+# 1. Edit crontab: crontab -e
+# 2. Add the line below (adjust paths as needed)
+# 3. Save and exit
+#
+# Cron Format: minute hour day month weekday command
+
+# Run daily at 6:00 AM (before business day starts)
+0 6 * * * cd "/Users/pravinjadhav/Desktop/Pravin/fuel price optimizer" && /usr/bin/python3 -m venv/bin/python src/batch_job.py >> logs/cron.log 2>&1
+
+# Run daily at 6:00 AM with specific date (if you need to pass date)
+# 0 6 * * * cd "/Users/pravinjadhav/Desktop/Pravin/fuel price optimizer" && /usr/bin/python3 -m venv/bin/python src/batch_job.py --date $(date +\%Y-\%m-\%d) >> logs/cron.log 2>&1
+
+# Run every weekday (Monday-Friday) at 6:00 AM
+# 0 6 * * 1-5 cd "/Users/pravinjadhav/Desktop/Pravin/fuel price optimizer" && /usr/bin/python3 -m venv/bin/python src/batch_job.py >> logs/cron.log 2>&1
+
+# Run every 12 hours (if needed for testing)
+# 0 */12 * * * cd "/Users/pravinjadhav/Desktop/Pravin/fuel price optimizer" && /usr/bin/python3 -m venv/bin/python src/batch_job.py >> logs/cron.log 2>&1
+
+# Example with virtual environment activated:
+# 0 6 * * * cd "/path/to/fuel price optimizer" && source venv/bin/activate && python src/batch_job.py >> logs/cron.log 2>&1
+
+# Notes:
+# - Replace "/path/to/fuel price optimizer" with your actual project path
+# - Replace "/usr/bin/python3" with your Python path (use: which python3)
+# - Create logs directory: mkdir -p logs
+# - Test cron job: Run the command manually first
+# - View cron logs: tail -f logs/cron.log
+

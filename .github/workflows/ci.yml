@@ -1,0 +1,184 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov black flake8 mypy
+    
+    - name: Run linter (flake8)
+      run: |
+        flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 src/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      continue-on-error: true
+    
+    - name: Run code formatter check (black)
+      run: |
+        black --check src/ tests/
+      continue-on-error: true
+    
+    - name: Run tests with pytest
+      run: |
+        pytest tests/ -v --cov=src --cov-report=xml --cov-report=html --cov-report=term
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+      continue-on-error: true
+
+  lint:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install linting dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black flake8 mypy isort
+    
+    - name: Check code formatting with black
+      run: |
+        black --check src/ tests/
+    
+    - name: Check import sorting with isort
+      run: |
+        isort --check-only src/ tests/
+      continue-on-error: true
+    
+    - name: Run type checking with mypy
+      run: |
+        mypy src/ --ignore-missing-imports
+      continue-on-error: true
+
+  build-docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Create dummy model file for testing
+      run: |
+        mkdir -p models
+        # Create a minimal dummy model file for CI (actual model needs training)
+        touch models/demand_model.joblib
+        echo "Dummy model for CI" > models/demand_model.joblib
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false
+        tags: fuel-price-optimizer:test
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Test Docker image
+      run: |
+        docker run --rm fuel-price-optimizer:test python --version
+        docker run --rm fuel-price-optimizer:test python -c "import src.api; print('API module imports successfully')"
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [test, lint, build-docker]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment:
+      name: staging
+      url: http://staging.example.com
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        # Add your deployment commands here
+        # Examples:
+        # - docker-compose up -d
+        # - kubectl apply -f k8s/
+        # - ansible-playbook deploy.yml
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [test, lint, build-docker]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment:
+      name: production
+      url: http://production.example.com
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository }}:latest
+          ghcr.io/${{ github.repository }}:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment..."
+        # Add your deployment commands here
+        # Examples:
+        # - kubectl set image deployment/fuel-price-api api=ghcr.io/${{ github.repository }}:${{ github.sha }}
+        # - docker-compose pull && docker-compose up -d
+

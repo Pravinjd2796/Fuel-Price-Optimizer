@@ -1,0 +1,103 @@
+stages:
+  - test
+  - lint
+  - build
+  - deploy
+
+variables:
+  PYTHON_VERSION: "3.11"
+  DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+
+# Cache dependencies
+cache:
+  paths:
+    - .pip-cache/
+
+before_script:
+  - python --version
+  - pip install --upgrade pip
+  - pip install -r requirements.txt --cache-dir .pip-cache
+
+test:
+  stage: test
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install pytest pytest-cov black flake8
+    - pytest tests/ -v --cov=src --cov-report=xml --cov-report=html --cov-report=term
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - htmlcov/
+    expire_in: 1 week
+
+lint:
+  stage: lint
+  image: python:${PYTHON_VERSION}
+  script:
+    - pip install black flake8 isort mypy
+    - flake8 src/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+    - black --check src/ tests/
+    - isort --check-only src/ tests/ || true
+    - mypy src/ --ignore-missing-imports || true
+  allow_failure: true
+
+build-docker:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - mkdir -p models
+    - touch models/demand_model.joblib
+    - echo "Dummy model for CI" > models/demand_model.joblib
+    - docker build -t $DOCKER_IMAGE -t $CI_REGISTRY_IMAGE:latest .
+    - docker push $DOCKER_IMAGE
+    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker run --rm $DOCKER_IMAGE python --version
+    - docker run --rm $DOCKER_IMAGE python -c "import src.api; print('API module imports successfully')"
+  only:
+    - main
+    - develop
+    - merge_requests
+
+deploy-staging:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "Deploying to staging environment..."
+    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    # Add deployment commands here
+    # - docker-compose -f docker-compose.staging.yml up -d
+    # - kubectl apply -f k8s/staging/
+  environment:
+    name: staging
+    url: http://staging.example.com
+  only:
+    - develop
+
+deploy-production:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "Deploying to production environment..."
+    - docker pull $CI_REGISTRY_IMAGE:latest
+    # Add deployment commands here
+    # - docker-compose -f docker-compose.prod.yml up -d
+    # - kubectl apply -f k8s/production/
+  environment:
+    name: production
+    url: http://production.example.com
+  only:
+    - main
+  when: manual
+
