@@ -17,7 +17,7 @@ services:
   - type: cron
     name: daily-price-recommendation
     runtime: docker
-    schedule: "0 14 * * *"  # Daily at 14:00 UTC (7:30 PM IST)
+    schedule: "0 15 * * *"  # Daily at 15:00 UTC (8:30 PM IST)
     command: python src/batch_job.py
     plan: free
     region: oregon
