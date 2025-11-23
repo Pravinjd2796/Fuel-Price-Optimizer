@@ -667,6 +667,41 @@ fuel price optimizer/
 
 ---
 
+## 🚀 Deployment Instructions
+
+### Deploy to Render (Free Tier)
+
+1.  **Push to GitHub**:
+    ```bash
+    git push origin main
+    ```
+2.  **Create Web Service**:
+    - Go to [Render Dashboard](https://dashboard.render.com/).
+    - Click **New +** -> **Web Service**.
+    - Connect your GitHub repository.
+    - Render will automatically detect `render.yaml` (or you can manually configure).
+    - **Build Command**: `pip install -r requirements.txt`
+    - **Start Command**: `uvicorn src.api:app --host 0.0.0.0 --port $PORT`
+    - **Plan**: Free
+
+3.  **Create Cron Job (Optional)**:
+    - Click **New +** -> **Cron Job**.
+    - Connect repo.
+    - **Schedule**: `0 14 * * *` (for 7:30 PM IST).
+    - **Command**: `python src/batch_job.py`
+
+### Deploy Airflow DAG
+
+1.  **Copy DAG**:
+    ```bash
+    cp scheduling/airflow_dag.py $AIRFLOW_HOME/dags/
+    ```
+2.  **Verify**:
+    - Check Airflow UI for `daily_price_recommendation`.
+    - Next run should be scheduled for **7:30 PM**.
+
+---
+
 **Your project is production-ready! 🚀**
 
 For questions or issues, refer to the troubleshooting section or relevant documentation files.
