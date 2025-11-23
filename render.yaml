@@ -1,0 +1,23 @@
+services:
+  # 1. Web Service (The API)
+  - type: web
+    name: fuel-price-api
+    runtime: docker
+    repo: https://github.com/username/fuel-price-optimizer  # Replace with your repo URL
+    plan: free
+    region: oregon
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+    healthCheckPath: /health
+
+  # 2. Cron Job (The Batch Job)
+  # Note: Render Free tier might not support Cron Jobs. 
+  # If not, you can trigger the batch job via the API or run it externally.
+  - type: cron
+    name: daily-price-recommendation
+    runtime: docker
+    schedule: "0 14 * * *"  # Daily at 14:00 UTC (7:30 PM IST)
+    command: python src/batch_job.py
+    plan: free
+    region: oregon

@@ -26,9 +26,16 @@ from airflow.utils.dates import days_ago
 import sys
 from pathlib import Path
 
-# Add project to path (adjust based on your Airflow setup)
-PROJECT_PATH = Path("/Users/pravinjadhav/Desktop/Pravin/fuel price optimizer")
-sys.path.insert(0, str(PROJECT_PATH))
+# Add project to path (assumes DAG is in scheduling/ folder of the project)
+try:
+    # Try to find the project root relative to this file
+    PROJECT_PATH = Path(__file__).resolve().parent.parent
+    if str(PROJECT_PATH) not in sys.path:
+        sys.path.insert(0, str(PROJECT_PATH))
+except Exception:
+    # Fallback if __file__ is not available (some Airflow setups)
+    # You may need to set PYTHONPATH env var in Airflow
+    pass
 
 from src.batch_job import run_daily_recommendation
 
@@ -49,7 +56,7 @@ dag = DAG(
     'daily_price_recommendation',
     default_args=default_args,
     description='Daily fuel price recommendation job',
-    schedule_interval='0 6 * * *',  # Run daily at 6:00 AM
+    schedule_interval='30 19 * * *',  # Run daily at 7:30 PM
     catchup=False,  # Don't backfill missed runs
     tags=['price', 'optimization', 'ml'],
 )
