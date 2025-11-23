@@ -59,10 +59,10 @@ coverage.xml
 .env.*.local
 
 # Model files (keep structure but ignore actual models in git)
-models/*.joblib
-models/*.pkl
-models/*.h5
-models/*.pt
+# models/*.joblib
+# models/*.pkl
+# models/*.h5
+# models/*.pt
 
 # Data files (optional - uncomment if you want to exclude data)
 # data/*.csv
