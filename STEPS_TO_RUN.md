@@ -690,6 +690,22 @@ fuel price optimizer/
     - **Schedule**: `0 14 * * *` (for 7:30 PM IST).
     - **Command**: `python src/batch_job.py`
 
+### 3. Verify Deployment
+
+1.  **Check Status**:
+    - In Render Dashboard, look for **"Build Succeeded"** and **"Deploy Succeeded"**.
+    - Wait for the status to turn **"Live"** (green dot).
+
+2.  **Get URL**:
+    - Copy the URL from the top left (e.g., `https://fuel-price-optimizer.onrender.com`).
+
+3.  **Test Live API**:
+    ```bash
+    # Replace with your actual Render URL
+    curl https://your-app-name.onrender.com/health
+    ```
+    - Expected response: `{"status":"healthy","model_loaded":true}`
+
 ### Deploy Airflow DAG
 
 1.  **Copy DAG**:

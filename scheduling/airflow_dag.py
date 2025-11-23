@@ -56,7 +56,7 @@ dag = DAG(
     'daily_price_recommendation',
     default_args=default_args,
     description='Daily fuel price recommendation job',
-    schedule_interval='30 19 * * *',  # Run daily at 7:30 PM
+    schedule_interval='30 20 * * *',  # Run daily at 8:30 PM
     catchup=False,  # Don't backfill missed runs
     tags=['price', 'optimization', 'ml'],
 )
